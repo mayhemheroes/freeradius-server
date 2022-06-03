@@ -1,0 +1,4 @@
+project: PROJECT
+target: fuzzer_dhcpv4
+cmds:
+- cmd: /out/fuzzer_dhcpv4
