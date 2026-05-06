@@ -24,9 +24,18 @@ function copy_lib
 
 mkdir -p $OUT/lib
 
-git apply --ignore-whitespace $SRC/patch.diff
 # build project
-./configure --enable-fuzzer --enable-coverage --enable-address-sanitizer
+# Point freeradius configure at our static OpenSSL 3.x in /usr/local/ssl
+# to avoid version mismatch with the system OpenSSL 1.1.x shared library.
+# OpenSSL 3.x installs libs under lib64 on x86_64.
+OPENSSL_PREFIX=/usr/local/ssl
+OPENSSL_LIB_DIR=${OPENSSL_PREFIX}/lib64
+# Fall back to lib if lib64 does not exist (some OpenSSL builds)
+if [ ! -d "${OPENSSL_LIB_DIR}" ]; then
+    OPENSSL_LIB_DIR=${OPENSSL_PREFIX}/lib
+fi
+
+./configure --enable-fuzzer --enable-coverage --enable-address-sanitizer     --with-openssl-include-dir=${OPENSSL_PREFIX}/include     --with-openssl-lib-dir=${OPENSSL_LIB_DIR}
 # make tries to compile regular programs as fuzz targets
 # so -i flag ignores these errors
 make -i -j$(nproc)
